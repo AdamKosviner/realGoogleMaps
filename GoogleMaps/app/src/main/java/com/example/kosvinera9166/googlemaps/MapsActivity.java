@@ -1,7 +1,14 @@
 package com.example.kosvinera9166.googlemaps;
 
+import android.*;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.location.LocationManager;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -13,6 +20,12 @@ import com.google.android.gms.maps.model.MarkerOptions;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
+    private LocationManager locationManager;
+    private boolean isGpsenabled =false;
+    private boolean isNetworkEnabled = false;
+    private boolean canGetLocation =false;
+    private static final long MIN_TIME_BW_UPDATES = 1000*15*1;
+    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 5;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,8 +52,65 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
 
         // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        LatLng birthplace = new LatLng(40.7831, -73.9712);
+        mMap.addMarker(new MarkerOptions().position(birthplace).title("Born Here"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(birthplace));
+
+    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED&&ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+        return;
+    }
+
+    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)!= PackageManager.PERMISSION_GRANTED){
+        Log.d("MyMapsApp", "Failed permission check two");
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 2);
+    }
+        mMap.setMyLocationEnabled(true);
+    }
+    public void getLocation(){
+        try{
+            locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+            //get GPS status
+            isGpsenabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+            if(isGpsenabled) Log.d("MyMaps", "getLocation: Gps is enabled");
+
+            //get network enabled
+            isNetworkEnabled = locationManager.isProviderEnabled((LocationManager.NETWORK_PROVIDER));
+            if(isNetworkEnabled) Log.d("MyMaps", "getLocation: Network is enabled");
+
+            if(!isNetworkEnabled&&!isGpsenabled) {
+                Log.d("MyMaps", "getLocation: no provider is is enabled");
+            }
+            else{
+                this.canGetLocation=true;
+
+                if(isNetworkEnabled){
+                    Log.d("MyMaps", "getLocation: Network  enabled-requesting location updates");
+                    locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
+                            MIN_TIME_BW_UPDATES,
+                            MIN_DISTANCE_CHANGE_FOR_UPDATES,
+                            new locationListenerNetwork());
+
+
+                    Log.d("MyMaps","getLocation: networkloc update request succesful")   ;
+                    Toast.makeText(this, "Using network", Toast.LENGTH_SHORT);
+                }
+                if(isGpsenabled){
+                    Log.d("MyMaps", "getLocation: Network  enabled-requesting location updates");
+                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+                            MIN_TIME_BW_UPDATES,
+                            MIN_DISTANCE_CHANGE_FOR_UPDATES,
+                            locationListenerGps);
+
+                    Log.d("MyMaps","getLocation: networkloc update request succesful")   ;
+                    Toast.makeText(this, "Using GPS", Toast.LENGTH_SHORT);
+                }
+            }
+
+
+
+        } catch (Exception e){
+            Log.d("MyMaps","Caught exception in get location");
+            e.printStackTrace();;
+        }
     }
 }
