@@ -3,6 +3,7 @@ package com.example.kosvinera9166.googlemaps;
 import android.*;
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
 import android.support.v4.app.ActivityCompat;
@@ -11,10 +12,13 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -27,6 +31,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private boolean canGetLocation = false;
     private static final long MIN_TIME_BW_UPDATES = 1000 * 15 * 1;
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 5;
+    private Location myLocation;
+    private static final int MY_LOC_ZOOM_FACTOR = 17;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,58 +112,61 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             MIN_DISTANCE_CHANGE_FOR_UPDATES,
                             locationListenerGps);
 
-                    Log.d("MyMaps","getLocation: networkloc update request succesful")   ;
+                    Log.d("MyMaps", "getLocation: networkloc update request succesful");
                     Toast.makeText(this, "Using GPS", Toast.LENGTH_SHORT);
                 }
             }
 
 
-
-        } catch (Exception e){
-            Log.d("MyMaps","Caught exception in get location");
-            e.printStackTrace();;
+        } catch (Exception e) {
+            Log.d("MyMaps", "Caught exception in get location");
+            e.printStackTrace();
+            ;
         }
     }
-    android.location.LocationListener locationListenerGps = new android.location.LocationListener(){
+
+    android.location.LocationListener locationListenerGps = new android.location.LocationListener() {
         @Override
-        public void onLocationChanged(Location location){
+        public void onLocationChanged(Location location) {
             //output in Log.d and toast that gps enabled and working
-            Log.d("MyMaps","GpsEnabled: gps enablednd working");
-           Toast howzit =Toast.makeText(getApplicationContext(), "Using GPS", Toast.LENGTH_SHORT);
+            Log.d("MyMaps", "GpsEnabled: gps enablednd working");
+            Toast howzit = Toast.makeText(getApplicationContext(), "Using GPS", Toast.LENGTH_SHORT);
             howzit.show();
             //output a marker on map create dropmarker method
             //remove the network location updates see LocationManager
-    }
+        }
+
         @Override
-        public void onStatusChanged(String provider, int status, Bundle extras){
+        public void onStatusChanged(String provider, int status, Bundle extras) {
             //output in Log.d and toast that gps enabled and working
             //setup switch statement to check the status imput param
             //case LocationProvider.AVAILABLE --> output message t log d
             //case above but out ofservice or unavailable -->request NETWORK_pROVIDER updates
-           // request defaults
+            // request defaults
         }
 
         @Override
-        public void onProviderEnabled(String provider){
+        public void onProviderEnabled(String provider) {
 
         }
 
         @Override
-        public void onProviderDisabled(String provider){
+        public void onProviderDisabled(String provider) {
 
         }
 
 
     };
-    android.location.LocationListener locationListenerNetwork = new android.location.LocationListener(){
+    android.location.LocationListener locationListenerNetwork = new android.location.LocationListener() {
         @Override
-        public void onLocationChanged(Location location){
+        public void onLocationChanged(Location location) {
             //output in Log.d and toast that gps enabled and working
             //output a marker on map call dropmarker method
             //relaunch the network provider request updates see request LocationUpdates (NETWORK_PROVIDER)
         }
+
         @Override
-        public void onStatusChanged(String provider, int status, Bundle extras){
+        public void onStatusChanged(String provider, int status, Bundle extras) {
             //output in Log.d and toast that network enabled and working
             //setup switch statement to check the status imput param
             //case LocationProvider.AVAILABLE --> output message t log d
@@ -166,15 +175,67 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         @Override
-        public void onProviderEnabled(String provider){
+        public void onProviderEnabled(String provider) {
 
         }
 
         @Override
-        public void onProviderDisabled(String provider){
+        public void onProviderDisabled(String provider) {
 
         }
 
 
     };
+
+    public void dropMarker(String provider) {
+        LatLng userLocation = null;
+        if (locationManager != null) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                Log.d("MyMaps", "dropMarker: permission check failed");
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
+            }
+            myLocation = locationManager.getLastKnownLocation(provider);
+
+        }
+        if (myLocation==null){
+            Log.d("MyMaps", "dropMarker: previous known location is null");
+        }
+        else{
+
+
+            userLocation= new LatLng(myLocation.getLatitude(),myLocation.getLongitude());
+
+            //display lat long message
+            CameraUpdate update = CameraUpdateFactory.newLatLngZoom(userLocation, MY_LOC_ZOOM_FACTOR);
+
+            //drop the actual marker on map
+            //reference android circle class
+            Circle circle =mMap.addCircle(new CircleOptions()
+                    .center(userLocation)
+                    .radius(1)
+                    .strokeColor(Color.BLACK)
+                    .strokeWidth(2)
+                    .fillColor(Color.RED));
+
+            mMap.animateCamera(update);
+
+        }
+
+
+
+
+    }
+
+
+
+
+
+
 }
