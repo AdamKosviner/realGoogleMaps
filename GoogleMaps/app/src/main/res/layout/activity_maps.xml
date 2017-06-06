@@ -12,7 +12,7 @@
         <EditText
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/editText_searchWord"
+            android:id="@+id/searchField"
             android:layout_weight="0.41" />
 
         <Button
@@ -20,7 +20,7 @@
             android:layout_height="wrap_content"
             android:text="Go"
             android:id="@+id/button_Enter"
-            android:onClick="searchLocation" />
+            android:onClick="searchPlaces" />
 
         <Button
             android:layout_width="wrap_content"
@@ -34,7 +34,7 @@
             android:layout_height="wrap_content"
             android:text="Track"
             android:id="@+id/button_Track"
-            android:onClick="getLocation" />
+            android:onClick="trackMe" />
     </LinearLayout>
 
     <LinearLayout
@@ -52,7 +52,7 @@
         android:layout_height="wrap_content"
         android:text="Clear"
         android:id="@+id/button_Clear"
-        android:onClick="clearMarkers"
+        android:onClick="clearOverlays"
         android:layout_gravity="right" />
 
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
