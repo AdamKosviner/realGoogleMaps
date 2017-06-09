@@ -195,31 +195,40 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void searchPlaces(View view) {
 
         EditText locationSearch = (EditText) findViewById(R.id.searchField);
-        String location = locationSearch.getText().toString();
+        String location = "Carmel Valley " + locationSearch.getText().toString();
         List<Address> addressList = null;
 
         if (!location.equals("")) {
             Geocoder geocoder = new Geocoder(this);
             try {
-                addressList = geocoder.getFromLocationName(location, 1);
-                Toast.makeText(this, "SEARCHING", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Searching...", Toast.LENGTH_SHORT).show();
+                addressList = geocoder.getFromLocationName(location, 100);
 
             } catch (IOException e) {
                 e.printStackTrace();
-                Toast.makeText(this, "Not Found", Toast.LENGTH_SHORT).show();
-                return;
 
             }
-            Address address = addressList.get(0);
-            if (Math.abs(address.getLatitude() - myLocation.getLatitude()) <= (5 * 0.01666) && Math.abs(address.getLatitude() - myLocation.getLatitude()) <= 5 * 0.01666) {
-                LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
-                mMap.addMarker(new MarkerOptions().position(latLng).title("Search Results"));
-                mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
-            } else if (address != null) {
-                Toast.makeText(this, "Not Within 5 Mile Radius", Toast.LENGTH_SHORT).show();
+            if(addressList.isEmpty()){
+                Log.d("myMaps", "Address List is null; reached in method searchPlaces()");
+                Toast.makeText(this, "Not Found", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            for(int i = 0; i < addressList.size(); i++) {
+                Address address = addressList.get(i);
+                if (Math.abs(address.getLatitude() - myLocation.getLatitude()) <= (5 * 0.01666) && Math.abs(address.getLatitude() - myLocation.getLatitude()) <= 5 * 0.01666) {
+                    LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
+                    mMap.addMarker(new MarkerOptions().position(latLng).title(location));
+                    if(i == 0) {
+                        mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+                    }
+                } else if (address != null) {
+                    Toast.makeText(this, "Not Within 5 Mile Radius", Toast.LENGTH_SHORT).show();
+                }
             }
 
         }
+
     }
 
 
